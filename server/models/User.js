@@ -26,7 +26,8 @@ const userSchema = new mongoose.Schema(
       default: "user",
     },
     recentSearchedCities: {
-      type: [{String}],
+      type: [String],
+      default: [],
     },
     password: {
       type: String,
