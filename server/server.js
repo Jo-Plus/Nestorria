@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/mongodb.js";
 import { clerkMiddleware } from "@clerk/express";
+import { clerkWebhooks } from "./controllers/clerkWebhooks.js";
 
 dotenv.config();
 
@@ -13,6 +14,8 @@ const PORT = process.env.PORT || 4000;
 app.use(express.json());
 app.use(cors());
 app.use(clerkMiddleware());
+app.use('/api/clerk', clerkWebhooks);
+
 
 // Routes
 app.get("/", (req, res) => res.send("server is running"));
