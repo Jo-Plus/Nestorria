@@ -13,16 +13,14 @@ import bookingRouter from "./routes/bookingRoute.js";
 dotenv.config();
 const app = express();
 
-// Connect to DB and Cloudinary
 connectDB();
 connectCloudinary();
 
-// CORS
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://nestorria-backend-fawn.vercel.app", // إضافة دومين Vercel
+      "https://nestorria-backend-fawn.vercel.app",
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
@@ -30,26 +28,22 @@ app.use(
   })
 );
 
-// Clerk Webhook
 app.post(
   "/api/clerk",
   express.raw({ type: "application/json" }),
   clerkWebhooks
 );
 
-// Middleware
 app.use(express.json());
 app.use(clerkMiddleware());
 
-// Routes
 app.use("/api/user", userRouter);
 app.use("/api/agencies", agencyRouter);
 app.use("/api/properties", propertyRouter);
 app.use("/api/bookings", bookingRouter);
 
-// Route للـ root لتجنب 404
 app.get("/", (req, res) => {
-  res.send("API is running...");
+  res.send("Welcome to Nestorria API");
 });
 
 // Listen
