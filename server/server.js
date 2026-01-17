@@ -13,23 +13,31 @@ import bookingRouter from "./routes/bookingRoute.js";
 dotenv.config();
 const app = express();
 
+// Connect to DB and Cloudinary
 connectDB();
 connectCloudinary();
 
+// CORS
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://nestorria-backend-fawn.vercel.app", // إضافة دومين Vercel
+    ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+// Clerk Webhook
 app.post(
   "/api/clerk",
   express.raw({ type: "application/json" }),
   clerkWebhooks
 );
 
+// Middleware
 app.use(express.json());
 app.use(clerkMiddleware());
 
@@ -39,4 +47,11 @@ app.use("/api/agencies", agencyRouter);
 app.use("/api/properties", propertyRouter);
 app.use("/api/bookings", bookingRouter);
 
-app.listen(4000, () => console.log("Server running on port 4000"));
+// Route للـ root لتجنب 404
+app.get("/", (req, res) => {
+  res.send("API is running...");
+});
+
+// Listen
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
