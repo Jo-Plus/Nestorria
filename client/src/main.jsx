@@ -5,6 +5,7 @@ import App from "./App";
 import "./index.css";
 import { AppContextProvider } from "./context/AppContext.jsx";
 import { ClerkProvider } from "@clerk/clerk-react";
+import axios from "axios";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 

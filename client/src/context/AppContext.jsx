@@ -1,34 +1,77 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { dummyProperties } from "../assets/data.js";
-import { useUser } from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
+import axios from "axios";
+import toast from "react-hot-toast";
+
+axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
 
 export const AppContext = createContext(null);
 
 export const AppContextProvider = ({ children }) => {
-  const currency = import.meta.env.VITE_CURRENCY
   const navigate = useNavigate();
-  const [properties, setProperties] = useState([]);
   const { user } = useUser();
-  const [showAgencyReg, setShowAgencyReg] = useState(false)
-  const [isOwner, setIsOwner] = useState(true);
+  const { getToken } = useAuth();
+
+  const [isOwner, setIsOwner] = useState(false);
+  const [showAgencyReg, setShowAgencyReg] = useState(false);
+  const [properties, setProperties] = useState([]);
+
+  // 🔍 Search query state
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const getProperties = async () => {
+    try {
+      const { data } = await axios.get("/api/properties");
+      if (data.success) {
+        setProperties(data.properties);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const getUser = async () => {
+    try {
+      const token = await getToken();
+      const { data } = await axios.get("/api/user", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (data.success) {
+        setIsOwner(data.role === "agencyOwner");
+      } else if (data.message === "User not synced yet") {
+        setTimeout(getUser, 2000);
+      }
+    } catch (error) {
+      console.error("Fetch profile error:", error);
+    }
+  };
 
   useEffect(() => {
-    setProperties(dummyProperties);
+    getProperties();
   }, []);
+
+  useEffect(() => {
+    if (user) getUser();
+  }, [user]);
 
   return (
     <AppContext.Provider
       value={{
+        user,
+        getToken,
+        isOwner,
+        setIsOwner,
+        showAgencyReg,
+        setShowAgencyReg,
         navigate,
         properties,
         setProperties,
-        currency,
-        user,
-        showAgencyReg,
-        setShowAgencyReg,
-        isOwner,
-        setIsOwner,
+        searchQuery,
+        setSearchQuery,
       }}
     >
       {children}
@@ -36,10 +79,4 @@ export const AppContextProvider = ({ children }) => {
   );
 };
 
-export const useAppContext = () => {
-  const context = useContext(AppContext);
-  if (!context) {
-    throw new Error("useAppContext must be used inside AppContextProvider");
-  }
-  return context;
-};
+export const useAppContext = () => useContext(AppContext);

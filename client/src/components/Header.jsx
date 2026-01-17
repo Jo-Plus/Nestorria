@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, Navigate, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { assets } from "../assets/data.js";
 import Navbar from "./Navbar.jsx";
 import { useClerk, UserButton, useUser } from "@clerk/clerk-react";
@@ -9,10 +9,33 @@ const Header = () => {
   const [active, setActive] = useState(false);
   const [menuOpened, setMenuOpened] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+
   const location = useLocation();
   const { user } = useUser();
   const { openSignIn } = useClerk();
-  const { navigate } = useAppContext();
+  const { navigate, isOwner, setShowAgencyReg, searchQuery, setSearchQuery } =
+    useAppContext();
+
+  const toggleMenu = () => setMenuOpened((prev) => !prev);
+
+  useEffect(() => {
+    if (location.pathname !== "/") {
+      setActive(true);
+      setMenuOpened(false);
+      return;
+    }
+
+    const handleScroll = () => {
+      const isScrolled = window.scrollY > 10;
+      setActive(isScrolled);
+      if (isScrolled) setMenuOpened(false);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [location.pathname]);
+
   const BookingIcon = () => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -33,32 +56,6 @@ const Header = () => {
     </svg>
   );
 
-  const toggleMenu = () => setMenuOpened((prev) => !prev);
-
-  useEffect(() => {
-    if (location.pathname !== "/") {
-      setActive(true);
-      setMenuOpened(false);
-      return;
-    }
-
-    const handleScroll = () => {
-      const isScrolled = window.scrollY > 10;
-      setActive(isScrolled);
-
-      if (isScrolled) {
-        setMenuOpened(false);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    handleScroll();
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [location.pathname]);
-
   return (
     <header
       className={`${
@@ -66,9 +63,7 @@ const Header = () => {
       } fixed top-0 w-full z-50 transition-all duration-200`}
     >
       <div className="max-padd-container">
-        {/* container */}
         <div className="flexBetween">
-          {/* logo */}
           <div className="flex flex-1">
             <Link to="/">
               <img
@@ -80,7 +75,7 @@ const Header = () => {
               />
             </Link>
           </div>
-          {/* Navbar */}
+
           <Navbar
             setMenuOpened={setMenuOpened}
             containerStyles={`${
@@ -89,11 +84,25 @@ const Header = () => {
                 : "hidden lg:flex gap-x-5 xl:gap-x-1 medinm-15 p-1"
             } ${!menuOpened && !active ? "text-white" : ""}`}
           />
-          {/* Buttons & profile */}
+
           <div className="flex sm:flex-1 items-center sm:justify-end gap-x-4 sm:gap-x-8">
-            {/* SearchBar */}
+            <div>
+              {user && (
+                <button
+                  onClick={() =>
+                    isOwner ? navigate("/owner") : setShowAgencyReg(true)
+                  }
+                  className={`btn-outline px-2 py-1 text-xs font-semibold ${
+                    !active &&
+                    "text-primary ring-primary bg-transparent hover:text-black"
+                  } bg-secondary/10 hover:bg-white`}
+                >
+                  {isOwner ? "Dashboard" : "Register Agency"}
+                </button>
+              )}
+            </div>
+
             <div className="relative flex items-center">
-              {" "}
               <div
                 className={`${
                   active ? "bg-secondary/10" : "bg-white"
@@ -106,31 +115,35 @@ const Header = () => {
                 <input
                   type="text"
                   placeholder="Type Here..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    navigate("/listing");
+                  }}
                   className="w-full text-sm outline-none pr-10 placeholder:text-gray-400 bg-transparent"
                 />
               </div>
               <div
                 onClick={() => setShowSearch((prev) => !prev)}
                 className={`${
-                  active ? "bg-secondary/10" : "bg-primary"
-                } absolute right-0 ring-1 ring-slate-900/10 p-[8px] rounded-full cursor-pointer z-10`}
+                  active ? "bg-secondary/10" : "bg-white"
+                } absolute right-0 ring-1 ring-slate-900/10 p-[8px] rounded-full cursor-pointer z-10 flex items-center justify-center`}
               >
                 <img
                   src={assets.search}
                   alt="search"
-                  className={`${
-                    !active && "invert" && active
-                  } h-6 w-6 object-contain`}
+                  className="h-6 w-6 object-contain"
+                  style={{ filter: "invert(0)" }}
                 />
               </div>
             </div>
-            {/* Menu Toggle */}
+
             <>
               {menuOpened ? (
                 <img
                   src={assets.close}
                   alt="close"
-                  onClick={toggleMenu}
+                  onClick={() => setMenuOpened(false)}
                   className={`${
                     !active && "invert"
                   } lg:hidden cursor-pointer text-xl`}
@@ -139,46 +152,40 @@ const Header = () => {
                 <img
                   src={assets.menu}
                   alt="menu"
-                  onClick={toggleMenu}
+                  onClick={() => setMenuOpened(true)}
                   className={`${
                     !active && "invert"
                   } lg:hidden cursor-pointer text-xl`}
                 />
               )}
             </>
-            {/* User Profile */}
+
             <div className="group relative top-1">
-              <div>
-                {/* User */}
-                {user ? (
-                  <UserButton
-                    appearance={{
-                      elements: {
-                        userButtonAvatarBox: {
-                          width: "42px",
-                          height: "42px",
-                        },
-                      },
-                    }}
-                  >
-                    <UserButton.MenuItems>
-                      <UserButton.Action
-                        label="My Bookings"
-                        labelIcon={<BookingIcon />}
-                        onClick={() => navigate("/my-bookings")}
-                      />
-                    </UserButton.MenuItems>
-                  </UserButton>
-                ) : (
-                  <button
-                    onClick={() => openSignIn()}
-                    className="btn-secondary flexCenter gap-2 rounded-full"
-                  >
-                    Login
-                    <img src={assets.user} alt="userIcon" />
-                  </button>
-                )}
-              </div>
+              {user ? (
+                <UserButton
+                  appearance={{
+                    elements: {
+                      userButtonAvatarBox: { width: "42px", height: "42px" },
+                    },
+                  }}
+                >
+                  <UserButton.MenuItems>
+                    <UserButton.Action
+                      label="My Bookings"
+                      labelIcon={<BookingIcon />}
+                      onClick={() => navigate("/my-bookings")}
+                    />
+                  </UserButton.MenuItems>
+                </UserButton>
+              ) : (
+                <button
+                  onClick={() => openSignIn()}
+                  className="btn-secondary flexCenter gap-2 rounded-full"
+                >
+                  Login
+                  <img src={assets.user} alt="userIcon" />
+                </button>
+              )}
             </div>
           </div>
         </div>

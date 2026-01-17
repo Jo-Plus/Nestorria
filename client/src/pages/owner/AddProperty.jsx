@@ -1,7 +1,14 @@
 import React, { useState } from "react";
 import { assets } from "../../assets/data.js";
+import toast from "react-hot-toast";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useAppContext } from "../../context/AppContext.jsx";
 
 const AddProperty = () => {
+  const { getToken } = useAppContext();
+  const navigate = useNavigate();
+
   const [images, setImages] = useState({
     1: null,
     2: null,
@@ -32,7 +39,116 @@ const AddProperty = () => {
 
   const [loading, setLoading] = useState(false);
 
-  // دالة موحدة لتحديث المدخلات النصية والرقمية
+  const onSubmitHandler = async (e) => {
+    e.preventDefault();
+
+    if (
+      !inputs.title.trim() ||
+      !inputs.description.trim() ||
+      !inputs.city.trim() ||
+      !inputs.country.trim() ||
+      !inputs.address.trim() ||
+      !inputs.propertyType ||
+      inputs.area === "" ||
+      inputs.bedrooms === "" ||
+      inputs.bathrooms === "" ||
+      (!inputs.priceRent && !inputs.priceSale)
+    ) {
+      toast.error("Please fill all required fields correctly");
+      return;
+    }
+
+    const hasImage = Object.values(images).some((img) => img !== null);
+    if (!hasImage) {
+      toast.error("Please upload at least one image");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const formData = new FormData();
+
+      formData.append("title", inputs.title);
+      formData.append("description", inputs.description);
+      formData.append("city", inputs.city);
+      formData.append("country", inputs.country);
+      formData.append("address", inputs.address);
+      formData.append("area", Number(inputs.area));
+      formData.append("propertyType", inputs.propertyType);
+      formData.append(
+        "priceRent",
+        inputs.priceRent ? Number(inputs.priceRent) : 0
+      );
+      formData.append(
+        "priceSale",
+        inputs.priceSale ? Number(inputs.priceSale) : 0
+      );
+      formData.append("bedrooms", Number(inputs.bedrooms));
+      formData.append("bathrooms", Number(inputs.bathrooms));
+      formData.append("garages", Number(inputs.garages));
+
+      const amenities = Object.keys(inputs.amenities).filter(
+        (key) => inputs.amenities[key]
+      );
+      formData.append("amenities", JSON.stringify(amenities));
+
+      Object.values(images).forEach((img) => {
+        if (img) {
+          formData.append("images", img);
+        }
+      });
+
+      const token = await getToken();
+
+      const { data } = await axios.post("/api/properties", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (data.success) {
+        toast.success("Property added successfully");
+
+        setInputs({
+          title: "",
+          description: "",
+          city: "",
+          country: "",
+          address: "",
+          area: "",
+          propertyType: "",
+          priceRent: "",
+          priceSale: "",
+          bedrooms: "",
+          bathrooms: "",
+          garages: "",
+          amenities: {
+            Parking: false,
+            Wifi: false,
+            Backyard: false,
+            Terrace: false,
+          },
+        });
+
+        setImages({
+          1: null,
+          2: null,
+          3: null,
+          4: null,
+        });
+
+        navigate("/owner/list-property");
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setInputs((prev) => ({ ...prev, [name]: value }));
@@ -40,8 +156,10 @@ const AddProperty = () => {
 
   return (
     <div className="pb-10">
-      <form className="flex flex-col gap-y-6 px-2 text-sm xl:max-w-4xl">
-        {/* Section: Basic Info */}
+      <form
+        onSubmit={onSubmitHandler}
+        className="flex flex-col gap-y-6 px-2 text-sm xl:max-w-4xl"
+      >
         <div className="space-y-4">
           <div className="w-full">
             <h5 className="h5 mb-1 font-semibold text-gray-700">
@@ -72,7 +190,6 @@ const AddProperty = () => {
           </div>
         </div>
 
-        {/* Section: Location & Type */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="w-full">
             <h5 className="h5 mb-1 font-semibold text-gray-700">City</h5>
@@ -118,7 +235,6 @@ const AddProperty = () => {
           </div>
         </div>
 
-        {/* Section: Address & Area */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="md:col-span-3">
             <h5 className="h5 mb-1 font-semibold text-gray-700">Address</h5>
@@ -146,7 +262,6 @@ const AddProperty = () => {
           </div>
         </div>
 
-        {/* Section: Details & Prices */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div>
             <h5 className="h5 mb-1 font-semibold text-gray-700 text-xs truncate">
@@ -215,7 +330,6 @@ const AddProperty = () => {
           </div>
         </div>
 
-        {/* Section: Amenities */}
         <div className="p-4 bg-secondary/5 rounded-2xl border border-slate-900/5">
           <h5 className="h5 mb-3 font-bold text-gray-800">
             Available Amenities
@@ -252,7 +366,6 @@ const AddProperty = () => {
           </div>
         </div>
 
-        {/* Section: Images */}
         <div>
           <h5 className="h5 mb-3 font-semibold text-gray-700">
             Property Images

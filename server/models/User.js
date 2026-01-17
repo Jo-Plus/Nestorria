@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema(
     },
     image: {
       type: String,
-      required: true,
+      default: "",
     },
     role: {
       type: String,
@@ -26,15 +26,11 @@ const userSchema = new mongoose.Schema(
       default: "user",
     },
     recentSearchedCities: {
-      type: [{String}],
-    },
-    password: {
-      type: String,
-      required: true,
-      minlength: 6,
+      type: [String],
+      default: [],
     },
   },
-  { timestamps: true }
+  { timestamps: true, _id: false }
 );
 
 export default mongoose.model("User", userSchema);

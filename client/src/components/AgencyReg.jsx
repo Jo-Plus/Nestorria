@@ -1,25 +1,68 @@
 import React, { useState } from "react";
 import { useAppContext } from "../context/AppContext.jsx";
 import { assets } from "../assets/data.js";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 const AgencyReg = () => {
-  const { setShowAgencyReg } = useAppContext();
+  const { setShowAgencyReg, getToken, setIsOwner } = useAppContext();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [contact, setContact] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
+  const [loading, setLoading] = useState(false); 
 
-  const handleSubmit = (e) => {
+  const onSubmitHandler = async (e) => {
     e.preventDefault();
-    console.log({ name, email, contact, address, city });
+    if (loading) return;
+
+    if (typeof getToken !== 'function') {
+        toast.error("Authentication utility is not ready");
+        return;
+    }
+
+    setLoading(true);
+    try {
+      const token = await getToken();
+      
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
+
+      const { data } = await axios.post(
+        `${backendUrl}/api/agencies`,
+        { name, email, contact, address, city },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+        setIsOwner(true);
+        setShowAgencyReg(false);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Connection error with server"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div onClick={()=> setShowAgencyReg(false)} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm transition-opacity duration-300">
+    <div
+      onClick={() => setShowAgencyReg(false)}
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm transition-opacity duration-300"
+    >
       <form
-      onClick={(e)=>e.stopPropagation()}
-        onSubmit={handleSubmit}
+        onClick={(e) => e.stopPropagation()}
+        onSubmit={onSubmitHandler}
         className="flex bg-white rounded-2xl max-w-4xl w-[95%] md:w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300 relative"
       >
         <div className="hidden md:block w-1/2 relative">
@@ -28,7 +71,7 @@ const AgencyReg = () => {
             alt="createPrp"
             className="h-full w-full object-cover"
           />
-          <div onClick={()=> setShowAgencyReg(false)} className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
         </div>
 
         <div className="flex flex-col w-full md:w-1/2 p-10 lg:p-12 bg-white">
@@ -50,90 +93,77 @@ const AgencyReg = () => {
           <div className="flex flex-col gap-5">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
-                <label className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1 block">
-                  Agency Name
-                </label>
+                <label className="text-xs font-bold text-gray-600 uppercase mb-1 block">Agency Name</label>
                 <input
                   type="text"
-                  placeholder="Type Here..."
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all"
+                  className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-secondary/20"
                   required
+                  placeholder="Nestorria Agency"
                 />
               </div>
               <div className="flex-1">
-                <label className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1 block">
-                  Contact
-                </label>
+                <label className="text-xs font-bold text-gray-600 uppercase mb-1 block">Contact</label>
                 <input
                   type="text"
-                  placeholder="Type Here..."
                   value={contact}
                   onChange={(e) => setContact(e.target.value)}
-                  className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all"
+                  className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-secondary/20"
                   required
+                  placeholder="+123456789"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1 block">
-                Email
-              </label>
+              <label className="text-xs font-bold text-gray-600 uppercase mb-1 block">Email</label>
               <input
                 type="email"
-                placeholder="Type Here..."
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all"
+                className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-secondary/20"
                 required
+                placeholder="agency@example.com"
               />
             </div>
 
             <div>
-              <label className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1 block">
-                Address
-              </label>
+              <label className="text-xs font-bold text-gray-600 uppercase mb-1 block">Address</label>
               <input
                 type="text"
-                placeholder="Type Here..."
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all"
+                className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-secondary/20"
                 required
+                placeholder="123 Street Name"
               />
             </div>
 
             <div>
-              <label className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1 block">
-                Location City
-              </label>
+              <label className="text-xs font-bold text-gray-600 uppercase mb-1 block">Location City</label>
               <div className="relative">
                 <select
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all"
+                  className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none appearance-none cursor-pointer"
                   required
                 >
-                  <option value="" disabled>
-                    Select City
-                  </option>
+                  <option value="" disabled>Select City</option>
                   <option value="Cairo">Cairo</option>
                   <option value="Dubai">Dubai</option>
                   <option value="London">London</option>
                 </select>
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
-                  ▼
-                </div>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">▼</div>
               </div>
             </div>
 
             <button
               type="submit"
-              className="btn-dark w-full py-4 mt-4 rounded-xl shadow-lg shadow-slate-200 hover:shadow-xl hover:translate-y-[-2px] active:translate-y-0 transition-all duration-200 font-bold"
+              disabled={loading}
+              className="btn-dark w-full py-4 mt-4 rounded-xl shadow-lg transition-all duration-200 font-bold disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              Register
+              {loading ? "Registering..." : "Register"}
             </button>
           </div>
         </div>

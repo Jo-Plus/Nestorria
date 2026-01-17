@@ -132,13 +132,13 @@ export const dummyAgentData = {
   
   // Agency Dummy Data
   export const dummyAgencyData = {
-    "_id": "67f7642a197ac559e4089b99",
+    "_id": "user_38FhkKOk1u2jptbqZT3hOyihNXL",
     "name": "Prime Solutions",
     "contact": "0123456789",
     "email": "contact@agencyname.com", 
     "address": "Suite 405, Midtown Business Tower, Park Avenue",
     "owner": dummyAgentData,
-    "city": "Los Angeles",
+    "city": "Cairo",
     "createdAt": "2025-04-12T10:45:30.000Z",
     "updatedAt": "2025-04-12T10:45:30.000Z",
     "__v": 0

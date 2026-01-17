@@ -5,9 +5,7 @@ import { assets } from "../assets/data.js";
 const About = () => {
   return (
     <section className="max-padd-container py-16 xl:py-28 !pt-36">
-      {/* Container */}
       <div className="flex items-center flex-col lg:flex-row gap-12">
-        {/* info left side */}
         <div className="flex-1">
           <Title
             title1={"Your Trusted Real Estate Partner"}
@@ -39,10 +37,8 @@ const About = () => {
               <p>Access to off-market properties</p>
             </div>
           </div>
-          {/* Rating */}
           <div className="flex mt-11">
             <div className="flex -space-x-5 pr-5">
-              {/* User 1 */}
               <div className="group relative">
                 <div className="absolute border border-gray-200 pointer-events-none group-hover:pointer-events-auto opacity-0 group-hover:opacity-100 -top-17 group-hover:ml-2 left-0 transition-all duration-400 pl-4 pr-12 py-2 rounded text-nowrap bg-white z-50 shadow-sm">
                   <div className="flex flex-col">
@@ -66,7 +62,6 @@ const About = () => {
                     </div>
                     <span className="text-xs text-slate-500">@richard</span>
                   </div>
-                  {/* السهم الصغير */}
                   <div className="size-3 border-l border-t border-gray-300/90 bg-white rotate-45 absolute left-4 -bottom-[7px]"></div>
                 </div>
                 <img
@@ -76,7 +71,6 @@ const About = () => {
                 />
               </div>
 
-              {/* User 2 */}
               <div className="group relative">
                 <div className="absolute border border-gray-200 pointer-events-none group-hover:pointer-events-auto opacity-0 group-hover:opacity-100 -top-17 group-hover:ml-2 left-0 transition-all duration-400 pl-4 pr-12 py-2 rounded text-nowrap bg-white z-50 shadow-sm">
                   <div className="flex flex-col">
@@ -109,7 +103,6 @@ const About = () => {
                 />
               </div>
 
-              {/* User 3 */}
               <div className="group relative">
                 <div className="absolute border border-gray-200 pointer-events-none group-hover:pointer-events-auto opacity-0 group-hover:opacity-100 -top-17 group-hover:ml-2 left-0 transition-all duration-400 pl-4 pr-12 py-2 rounded text-nowrap bg-white z-50 shadow-sm">
                   <div className="flex flex-col">
@@ -142,7 +135,6 @@ const About = () => {
                 />
               </div>
 
-              {/* User 4 */}
               <div className="group relative">
                 <div className="absolute border border-gray-200 pointer-events-none group-hover:pointer-events-auto opacity-0 group-hover:opacity-100 -top-17 group-hover:ml-2 left-0 transition-all duration-400 pl-4 pr-12 py-2 rounded text-nowrap bg-white z-50 shadow-sm">
                   <div className="flex flex-col">
@@ -189,7 +181,6 @@ const About = () => {
             </div>
           </div>
         </div>
-        {/* Image - right Side */}
         <div className="flex-1">
           <div className="relative flex justify-end">
             <img src={assets.about} alt="about" className="rounded-3xl" />

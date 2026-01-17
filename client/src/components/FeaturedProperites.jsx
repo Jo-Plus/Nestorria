@@ -13,7 +13,6 @@ import Item from "./Item.jsx";
 
 const FeaturedProperites = () => {
   const { properties } = useAppContext();
-  console.log("Properties Data:", properties);
   if (!properties || properties.length === 0) {
     return <p>Loading properties...</p>;
   }

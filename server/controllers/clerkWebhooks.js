@@ -1,53 +1,47 @@
 import { Webhook } from "svix";
-import User from "../models/User.model.js";
+import User from "../models/User.js";
 
 export const clerkWebhooks = async (req, res) => {
   try {
-    const webhook = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
+    const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
 
-    const headers = {
+    await wh.verify(req.body, {
       "svix-id": req.headers["svix-id"],
       "svix-timestamp": req.headers["svix-timestamp"],
       "svix-signature": req.headers["svix-signature"],
-    };
+    });
 
-    await webhook.verify(JSON.stringify(req.body), headers);
-
-    const { data, type } = req.body;
+    const { data, type } = JSON.parse(req.body);
 
     switch (type) {
-      case "user.created":
-        await User.create({
+      case "user.created": {
+        const newUser = new User({
           _id: data.id,
-          email: data.email_addresses[0]?.email_address,
-          username: `${data.first_name} ${data.last_name}`,
+          email: data.email_addresses[0].email_address,
+          username: `${data.first_name} ${data.last_name || ""}`,
+          image: data.image_url,
+        });
+        await newUser.save();
+        console.log("New user saved to DB");
+        break;
+      }
+      case "user.updated": {
+        await User.findByIdAndUpdate(data.id, {
+          email: data.email_addresses[0].email_address,
+          username: `${data.first_name} ${data.last_name || ""}`,
           image: data.image_url,
         });
         break;
-
-      case "user.updated":
-        await User.findOneAndUpdate(
-          { _id: data.id },
-          {
-            email: data.email_addresses[0]?.email_address,
-            username: `${data.first_name} ${data.last_name}`,
-            image: data.image_url,
-          },
-          { upsert: true, new: true }
-        );
+      }
+      case "user.deleted": {
+        await User.findByIdAndDelete(data.id);
         break;
-
-      case "user.deleted":
-        await User.findOneAndDelete({ _id: data.id });
-        break;
-
-      default:
-        console.log(`Unhandled Clerk event: ${type}`);
+      }
     }
 
-    return res.status(200).json({ success: true });
-  } catch (error) {
-    console.error("Clerk Webhook Error:", error.message);
-    return res.status(400).json({ success: false, message: error.message });
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("Webhook verification failed:", err.message);
+    res.status(400).json({ success: false, message: err.message });
   }
 };

@@ -14,15 +14,24 @@ import Sidebar from "./components/owner/Sidebar.jsx";
 import ListProperty from "./pages/owner/ListProperty.jsx";
 import AddProperty from "./pages/owner/AddProperty.jsx";
 import Dashboard from "./pages/owner/Dashboard.jsx";
+import { Toaster } from "react-hot-toast";
+import axios from "axios";
+
+axios.defaults.baseURL = "http://localhost:4000";
+axios.defaults.withCredentials = true;
 
 const App = () => {
   const location = useLocation();
-  const isOwnerPath = location.pathname.includes('owner');
+  const isOwnerPath = location.pathname.includes("owner");
   const { showAgencyReg } = useAppContext();
+
   return (
     <main className="flex flex-col min-h-screen overflow-x-hidden">
+      <Toaster position="top-right" reverseOrder={false} />
+
       {!isOwnerPath && <Header />}
       {showAgencyReg && <AgencyReg />}
+
       <div className="flex-grow">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -31,13 +40,15 @@ const App = () => {
           <Route path="/blog" element={<Blog />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/my-bookings" element={<MyBookings />} />
+
           <Route path="/owner" element={<Sidebar />}>
             <Route index element={<Dashboard />} />
-            <Route path="/owner/add-property" element={<AddProperty />} />
-            <Route path="/owner/list-property" element={<ListProperty />} />
+            <Route path="add-property" element={<AddProperty />} />
+            <Route path="list-property" element={<ListProperty />} />
           </Route>
         </Routes>
       </div>
+
       {!isOwnerPath && <Footer />}
     </main>
   );
